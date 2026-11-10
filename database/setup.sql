@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS simulasi (
   lambda_max DECIMAL(12,8) NULL,
   ci DECIMAL(12,8) NULL,
   cr DECIMAL(12,8) NULL,
+  nama_acuan VARCHAR(150) NULL,
+  source_ahp_id BIGINT NULL,
   status ENUM('draft','selesai') NOT NULL DEFAULT 'draft',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_simulasi_periode (periode)
@@ -90,6 +92,18 @@ CREATE TABLE IF NOT EXISTS ahp_perbandingan (
   nilai DECIMAL(12,8) NOT NULL,
   UNIQUE KEY uq_pasangan (id_simulasi,kode_i,kode_j),
   CONSTRAINT fk_ahp_simulasi FOREIGN KEY (id_simulasi) REFERENCES simulasi(id_simulasi) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS ahp_bobot (
+  id_ahp_bobot BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id_simulasi BIGINT NOT NULL,
+  kode_kriteria VARCHAR(10) NOT NULL,
+  nama_kriteria VARCHAR(150) NOT NULL,
+  tipe_kriteria VARCHAR(20) NOT NULL,
+  bobot DECIMAL(18,12) NOT NULL,
+  UNIQUE KEY uq_ahp_bobot (id_simulasi, kode_kriteria),
+  CONSTRAINT fk_ahp_bobot_simulasi FOREIGN KEY (id_simulasi)
+      REFERENCES simulasi (id_simulasi) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO kriteria (kode,nama,tipe,bobot,skala_min,skala_max,urutan) VALUES

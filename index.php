@@ -4,6 +4,7 @@ require __DIR__ . '/config/helpers.php';
 
 $totalAlternatif = (int) $pdo->query('SELECT COUNT(*) FROM alternatif')->fetchColumn();
 $totalKriteria = (int) $pdo->query('SELECT COUNT(*) FROM kriteria')->fetchColumn();
+$totalAhp = (int) $pdo->query("SELECT COUNT(*) FROM simulasi WHERE status = 'draft' AND cr <= 0.1 AND source_ahp_id IS NULL")->fetchColumn();
 $totalSimulasi = (int) $pdo->query("SELECT COUNT(*) FROM simulasi WHERE status = 'selesai'")->fetchColumn();
 $terakhir = $pdo->query(
     "SELECT id_simulasi, nama_simulasi, created_at
@@ -25,7 +26,8 @@ $terakhir = $pdo->query(
     <nav>
         <a class="active" href="index.php">Dashboard</a>
         <a href="alternatif/index.php">Alternatif</a>
-        <a href="simulasi/index.php">Simulasi</a>
+        <a href="simulasi/index.php">Perhitungan AHP</a>
+        <a href="simulasi/wp.php">Perhitungan WP</a>
         <a href="simulasi/riwayat.php">Riwayat</a>
     </nav>
 </header>
@@ -33,11 +35,11 @@ $terakhir = $pdo->query(
     <section class="hero">
         <div>
             <p class="eyebrow">SISTEM PENDUKUNG KEPUTUSAN</p>
-            <h1>Pemilihan Tempat Usaha</h1>
-            <p>Kelola alternatif, nilai kriteria, lalu hitung rekomendasi menggunakan metode Weighted Product (WP) dengan bobot kriteria yang telah ditetapkan.</p>
+            <h1>Pemilihan Tempat Usaha Toko Emas</h1>
+            <p>Kelola data alternatif ruko, tentukan bobot kriteria secara terukur menggunakan metode <strong>Analytic Hierarchy Process (AHP)</strong>, lalu rangking alternatif terbaik dengan <strong>Weighted Product (WP)</strong>.</p>
             <div class="actions">
                 <a class="button" href="alternatif/tambah.php">+ Tambah Alternatif</a>
-                <a class="button button-light" href="simulasi/index.php">Mulai Simulasi</a>
+                <a class="button button-light" href="simulasi/index.php">Mulai Perhitungan AHP →</a>
             </div>
         </div>
         <div class="hero-mark">AHP<br><span>×</span><br>WP</div>
@@ -45,8 +47,9 @@ $terakhir = $pdo->query(
 
     <section class="stats">
         <article class="stat-card"><span>Alternatif</span><strong><?= $totalAlternatif ?></strong><small>Tempat usaha terdaftar</small></article>
-        <article class="stat-card"><span>Kriteria Tetap</span><strong><?= $totalKriteria ?></strong><small>Kriteria yang digunakan</small></article>
-        <article class="stat-card"><span>Simulasi Selesai</span><strong><?= $totalSimulasi ?></strong><small>Riwayat tersimpan</small></article>
+        <article class="stat-card"><span>Kriteria Tetap</span><strong><?= $totalKriteria ?></strong><small>Kriteria C1–C6</small></article>
+        <article class="stat-card"><span>AHP Konsisten</span><strong><?= $totalAhp ?></strong><small>Bobot tersimpan (CR ≤ 0,10)</small></article>
+        <article class="stat-card"><span>Simulasi WP</span><strong><?= $totalSimulasi ?></strong><small>Perankingan selesai</small></article>
     </section>
 
     <section class="panel">
@@ -56,7 +59,7 @@ $terakhir = $pdo->query(
         </div>
         <div class="table-wrap">
             <table>
-                <thead><tr><th>Kode</th><th>Nama kriteria</th><th>Tipe</th><th>Bobot awal</th></tr></thead>
+                <thead><tr><th>Kode</th><th>Nama kriteria</th><th>Tipe</th><th>Bobot acuan</th></tr></thead>
                 <tbody>
                 <?php foreach (get_kriteria($pdo) as $k): ?>
                     <tr>
@@ -69,7 +72,7 @@ $terakhir = $pdo->query(
                 </tbody>
             </table>
         </div>
-        <p class="notice">Bobot awal pada data contoh berjumlah 101% karena pembulatan. Bobot akan dinormalisasi ketika perhitungan WP dijalankan.</p>
+        <p class="notice">Tabel di atas menampilkan bobot acuan dasar sistem. Pada proses evaluasi, bobot kriteria dihitung dinamis melalui <strong>Tahap 1: Perhitungan AHP</strong> dan kemudian dipanggil pada <strong>Tahap 2: Perhitungan WP</strong> untuk menghasilkan peringkat alternatif.</p>
     </section>
 
     <section class="panel">
